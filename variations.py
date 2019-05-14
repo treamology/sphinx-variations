@@ -25,13 +25,11 @@ class OnlyVariationDirective(sphinx.directives.other.Only):
         Checks if the tag is in the list of doc variations. If it is, turn it
         into a `VariationNode`
         """
-        if self.arguments[0] in self.config.variations:
-            nodes = super().run()
-            if nodes:
-                nodes[0].__class__ = VariationNode
-            return nodes
+        nodes = super().run()
+        if self.arguments[0] in self.config.variations and nodes:
+            nodes[0].__class__ = VariationNode
 
-        return super().run()
+        return nodes
 
 
 class HTMLVariationBuilder(sphinx.builders.html.StandaloneHTMLBuilder):
@@ -62,8 +60,9 @@ class HTMLVariationBuilder(sphinx.builders.html.StandaloneHTMLBuilder):
         Loops through each variation, which causes each docname to be
         written multiple times depending on which is active.
         """
-        for docname in status_iterator(docnames, 'writing output... ', "darkgreen",
-                                       len(docnames), self.app.verbosity):
+        for docname in status_iterator(docnames, 'writing output... ',
+                                       "darkgreen", len(docnames),
+                                       self.app.verbosity):
             for variation in self.config.variations:
                 self.docwriter.current_variation = variation
 
@@ -86,7 +85,8 @@ def setup(app):
     app.add_config_value('variations', [], 'env')
 
     app.add_builder(HTMLVariationBuilder, override=True)
-    app.add_node(VariationNode, html=(visit_variation_node, depart_variation_node))
+    app.add_node(VariationNode,
+                 html=(visit_variation_node, depart_variation_node))
     app.add_directive('only', OnlyVariationDirective, override=True)
 
     return {
