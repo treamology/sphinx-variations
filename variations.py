@@ -11,7 +11,7 @@ import docutils.nodes
 import docutils.io
 
 class VariationNode(docutils.nodes.Element):
-    """ Node that is used to differentate from a regular `only` node. """
+    """Node that is used to differentate from a regular `only` node."""
 
 
 class OnlyVariationDirective(sphinx.directives.other.Only):
@@ -72,9 +72,32 @@ class HTMLVariationBuilder(sphinx.builders.html.StandaloneHTMLBuilder):
                 self.write_doc_serialized(docname, doctree)
                 self.write_doc(docname, doctree)
 
+    def gen_additional_pages(self):
+        """Make sure any other files are written to the correct place as well."""
+        for pagelist in self.app.emit('html-collect-pages'):
+            for pagename, context, template in pagelist:
+                self.handle_page(pagename, context, template)
+
+        for variation in self.config.variations:
+            self.docwriter.current_variation = variation
+
+            # additional pages from conf.py
+            for pagename, template in self.config.html_additional_pages.items():
+                self.handle_page(pagename, {}, template)
+
+            # the search page
+            if self.search:
+                self.handle_page('search', {}, 'search.html')
+
+            # the opensearch xml file
+            if self.config.html_use_opensearch and self.search:
+                fn = path.join(self.outdir, '_static', 'opensearch.xml')
+                self.handle_page('opensearch', {}, 'opensearch.xml',
+                                 outfilename=fn)
+
 
 def visit_variation_node(self, node):
-    """ Skip the node if it's not the current variation, otherwise noop. """
+    """Skip the node if it's not the current variation, otherwise noop."""
     if self.builder.docwriter.current_variation != node['expr']:
         raise docutils.nodes.SkipNode
 
