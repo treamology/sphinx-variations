@@ -11,7 +11,12 @@ import docutils.nodes
 import docutils.io
 
 class VariationNode(docutils.nodes.Element):
-    """Node that is used to differentate from a regular `only` node."""
+    """
+    Node that is used to differentate from a regular `only` node.
+    It inherits from the same class that `only` does, which is also empty,
+    so *in theory* changing one of those node's __class__ to this shouldn't
+    have any ill effect.
+    """
 
 
 class OnlyVariationDirective(sphinx.directives.other.Only):
@@ -26,7 +31,7 @@ class OnlyVariationDirective(sphinx.directives.other.Only):
         into a `VariationNode`
         """
         nodes = super().run()
-        if self.arguments[0] in self.config.variations and nodes:
+        if nodes and (self.arguments[0] in self.config.variations):
             nodes[0].__class__ = VariationNode
 
         return nodes
@@ -38,13 +43,18 @@ class HTMLVariationBuilder(sphinx.builders.html.StandaloneHTMLBuilder):
     enabled/disabled.
     """
 
+    def __init__(self, app):
+        super().__init__(app)
+
+        self.current_variation = self.config.variations[0]
+
     def get_outfilename(self, pagename):
         """
         Same as super()'s, but adds in the current variation as an
         intermediate directory.
         """
         return os.path.join(self.outdir,
-                            self.docwriter.current_variation,
+                            self.current_variation[0],
                             os_path(pagename) + self.out_suffix)
 
     def get_target_uri(self, docname, typ=None):
@@ -52,7 +62,7 @@ class HTMLVariationBuilder(sphinx.builders.html.StandaloneHTMLBuilder):
         Same as super()'s, but adds in the current variation as an
         intermediate directory.
         """
-        return os.path.join(self.docwriter.current_variation,
+        return os.path.join(self.current_variation[0],
                             docname + self.link_suffix)
 
     def _write_serial(self, docnames):
@@ -64,7 +74,7 @@ class HTMLVariationBuilder(sphinx.builders.html.StandaloneHTMLBuilder):
                                        "darkgreen", len(docnames),
                                        self.app.verbosity):
             for variation in self.config.variations:
-                self.docwriter.current_variation = variation
+                self.current_variation = variation
 
                 self.app.phase = sphinx.util.build_phase.BuildPhase.RESOLVING
                 doctree = self.env.get_and_resolve_doctree(docname, self)
@@ -79,7 +89,7 @@ class HTMLVariationBuilder(sphinx.builders.html.StandaloneHTMLBuilder):
                 self.handle_page(pagename, context, template)
 
         for variation in self.config.variations:
-            self.docwriter.current_variation = variation
+            self.current_variation = variation
 
             # additional pages from conf.py
             for pagename, template in self.config.html_additional_pages.items():
@@ -95,10 +105,16 @@ class HTMLVariationBuilder(sphinx.builders.html.StandaloneHTMLBuilder):
                 self.handle_page('opensearch', {}, 'opensearch.xml',
                                  outfilename=fn)
 
+    def get_doc_context(self, docname, body, metatags):
+        """Give templates information on the current variation."""
+        ctx = super().get_doc_context(docname, body, metatags)
+        ctx['currentvariation'] = self.current_variation
+        ctx['variations'] = self.config.variations
+        return ctx
 
 def visit_variation_node(self, node):
     """Skip the node if it's not the current variation, otherwise noop."""
-    if self.builder.docwriter.current_variation != node['expr']:
+    if self.builder.current_variation[0] != node['expr']:
         raise docutils.nodes.SkipNode
 
 def depart_variation_node(self, node):
