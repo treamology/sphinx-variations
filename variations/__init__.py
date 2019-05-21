@@ -10,6 +10,8 @@ import sphinx.util.build_phase
 import docutils.nodes
 import docutils.io
 
+__version__ = '1.0'
+
 class VariationNode(docutils.nodes.Element):
     """
     Node that is used to differentate from a regular `only` node.
