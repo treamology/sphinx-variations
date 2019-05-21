@@ -38,8 +38,13 @@ class OnlyVariationDirective(sphinx.directives.other.Only):
 
         return nodes
 
+try:
+    from readthedocs_ext.readthedocs import ReadtheDocsBuilder
+    builder_base = ReadtheDocsBuilder
+except ImportError:
+    builder_base = sphinx.builders.html.StandaloneHTMLBuilder
 
-class HTMLVariationBuilder(sphinx.builders.html.StandaloneHTMLBuilder):
+class HTMLVariationBuilder(builder_base):
     """
     Outputs multiple variations of the documentation, with differing variations
     enabled/disabled.
