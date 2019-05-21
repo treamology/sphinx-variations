@@ -31,7 +31,7 @@ class OnlyVariationDirective(sphinx.directives.other.Only):
         into a `VariationNode`
         """
         nodes = super().run()
-        if nodes and (self.arguments[0] in self.config.variations):
+        if nodes and (self.arguments[0] in [var[0] for var in self.config.variations]):
             nodes[0].__class__ = VariationNode
 
         return nodes
