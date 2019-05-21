@@ -13,7 +13,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/treamology/sphinx-variations',
-    packages='variations',
+    packages=['variations'],
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
@@ -21,5 +21,8 @@ setuptools.setup(
         'Framework :: Sphinx',
         'Topic :: Documentation',
         'Topic :: Software Development :: Documentation',
+    ],
+    install_requires=[
+       'sphinx'
     ],
 )

@@ -14,10 +14,10 @@ python3 -m pip install sphinx-variations
 After installing the package, list the extension in your Sphinx project's `conf.py`.
 
 ```
-extensions = [..., 'sphinx-variations']
+extensions = [..., 'variations']
 ```
 
-###Configuration
+### Configuration
 
 To create multiple variations for your docs, a list of tags to use as variations can be inserted into your `conf.py` file:
 
