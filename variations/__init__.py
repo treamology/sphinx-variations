@@ -10,7 +10,7 @@ import sphinx.util.build_phase
 import docutils.nodes
 import docutils.io
 
-__version__ = '1.0'
+__version__ = '1.0.2'
 
 class VariationNode(docutils.nodes.Element):
     """
@@ -37,6 +37,7 @@ class OnlyVariationDirective(sphinx.directives.other.Only):
             nodes[0].__class__ = VariationNode
 
         return nodes
+
 
 try:
     from readthedocs_ext.readthedocs import ReadtheDocsBuilder
@@ -127,13 +128,22 @@ def visit_variation_node(self, node):
 def depart_variation_node(self, node):
     pass
 
+def builder_inited(app):
+    """
+    This is the earliest event hook possible, hopefully adding stuff here
+    doesn't screw anything up. We only want our stuff to run when we're using
+    the regular old HTML builder.
+    """
+    if app.builder.name in ['html', 'readthedocs']:
+        app.add_node(VariationNode,
+                     html=(visit_variation_node, depart_variation_node))
+        app.add_directive('only', OnlyVariationDirective, override=True)
+
 def setup(app):
     app.add_config_value('variations', [], 'env')
-
     app.add_builder(HTMLVariationBuilder, override=True)
-    app.add_node(VariationNode,
-                 html=(visit_variation_node, depart_variation_node))
-    app.add_directive('only', OnlyVariationDirective, override=True)
+
+    app.connect('builder-inited', builder_inited)
 
     return {
         'version': '0.1',
