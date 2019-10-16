@@ -113,12 +113,15 @@ class HTMLVariationBuilder(builder_base):
                 self.handle_page('opensearch', {}, 'opensearch.xml',
                                  outfilename=fn)
 
-    def get_doc_context(self, docname, body, metatags):
+    def write_genindex(self):
+        for variation in self.config.variations:
+            self.current_variation = variation
+            super().write_genindex()
+
+    def update_page_context(self, pagename, templatename, ctx, event_arg):
         """Give templates information on the current variation."""
-        ctx = super().get_doc_context(docname, body, metatags)
         ctx['currentvariation'] = self.current_variation
         ctx['variations'] = self.config.variations
-        return ctx
 
 def visit_variation_node(self, node):
     """Skip the node if it's not the current variation, otherwise noop."""
