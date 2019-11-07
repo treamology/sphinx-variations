@@ -123,6 +123,10 @@ class HTMLVariationBuilder(builder_base):
         ctx['currentvariation'] = self.current_variation
         ctx['variations'] = self.config.variations
 
+        if self.current_variation and 'theme_canonical_url' in ctx:
+            ctx['theme_canonical_url'] += self.current_variation[0] + '/'
+
+
 def visit_variation_node(self, node):
     """Skip the node if it's not the current variation, otherwise noop."""
     if self.builder.current_variation[0] != node['expr']:
