@@ -10,7 +10,7 @@ import sphinx.util.build_phase
 import docutils.nodes
 import docutils.io
 
-__version__ = '1.0.3'
+__version__ = '1.0.4'
 
 class VariationNode(docutils.nodes.Element):
     """
@@ -70,8 +70,7 @@ class HTMLVariationBuilder(builder_base):
         Same as super()'s, but adds in the current variation as an
         intermediate directory.
         """
-        return os.path.join(self.current_variation[0],
-                            docname + self.link_suffix)
+        return self.current_variation[0] + '/' + docname + self.link_suffix
 
     def _write_serial(self, docnames):
         """
