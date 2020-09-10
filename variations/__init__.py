@@ -10,7 +10,7 @@ import sphinx.util.build_phase
 import docutils.nodes
 import docutils.io
 
-__version__ = '1.0.4'
+__version__ = '1.0.5'
 
 class VariationNode(docutils.nodes.Element):
     """
@@ -91,12 +91,13 @@ class HTMLVariationBuilder(builder_base):
 
     def gen_additional_pages(self):
         """Make sure any other files are written to the correct place as well."""
-        for pagelist in self.app.emit('html-collect-pages'):
-            for pagename, context, template in pagelist:
-                self.handle_page(pagename, context, template)
 
         for variation in self.config.variations:
             self.current_variation = variation
+
+            for pagelist in self.app.emit('html-collect-pages'):
+                for pagename, context, template in pagelist:
+                    self.handle_page(pagename, context, template)
 
             # additional pages from conf.py
             for pagename, template in self.config.html_additional_pages.items():
