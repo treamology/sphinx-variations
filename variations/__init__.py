@@ -10,7 +10,7 @@ import sphinx.util.build_phase
 import docutils.nodes
 import docutils.io
 
-__version__ = '1.0.5'
+__version__ = '1.1.0'
 
 class VariationNode(docutils.nodes.Element):
     """
@@ -89,6 +89,18 @@ class HTMLVariationBuilder(builder_base):
                 self.write_doc_serialized(docname, doctree)
                 self.write_doc(docname, doctree)
 
+    def _write_parallel(self, docnames, nproc):
+        """
+        Run one full parallel pass per variation. ``super()._write_parallel``
+        calls ``tasks.join()`` before returning, so ``self.current_variation``
+        is guaranteed to be stable for the duration of each pass — both for
+        the main process (which calls ``write_doc_serialized``) and for the
+        forked workers (which inherit it at fork time).
+        """
+        for variation in self.config.variations:
+            self.current_variation = variation
+            super()._write_parallel(docnames, nproc)
+
     def gen_additional_pages(self):
         """Make sure any other files are written to the correct place as well."""
 
@@ -155,5 +167,5 @@ def setup(app):
     return {
         'version': '0.1',
         'parallel_read_safe': True,
-        'parallel_write_safe': False,
+        'parallel_write_safe': True,
     }
