@@ -1,6 +1,10 @@
 import os
+from pathlib import Path
 
-from sphinx.util import status_iterator
+try: # Sphinx >= 7.2
+    from sphinx.util.display import status_iterator
+except ImportError:
+    from sphinx.util import status_iterator
 from sphinx.util.osutil import os_path
 import sphinx.builders.html
 import sphinx.directives.other
@@ -51,15 +55,27 @@ class HTMLVariationBuilder(builder_base):
     enabled/disabled.
     """
 
-    def __init__(self, app):
-        super().__init__(app)
+    def __init__(self, app, env=None):
+        try: # Sphinx >= 7.2
+            super().__init__(app, env)
+        except TypeError:
+            super().__init__(app)
 
         self.current_variation = self.config.variations[0]
+
+    def get_output_path(self, page_name, /):
+        """
+        Same as super()'s, but adds in the current variation as an
+        intermediate directory.  Used in Sphinx >= 9.
+        """
+        return Path(self.outdir,
+                    self.current_variation[0],
+                    os_path(page_name) + self.out_suffix)
 
     def get_outfilename(self, pagename):
         """
         Same as super()'s, but adds in the current variation as an
-        intermediate directory.
+        intermediate directory.  Used in Sphinx < 9.
         """
         return os.path.join(self.outdir,
                             self.current_variation[0],
@@ -72,6 +88,16 @@ class HTMLVariationBuilder(builder_base):
         """
         return self.current_variation[0] + '/' + docname + self.link_suffix
 
+    def _set_phase(self, phase):
+        """
+        Set the build phase, tolerating Sphinx >= 9 where ``app.phase`` is a
+        read-only property managed internally by Sphinx.
+        """
+        try:
+            self.app.phase = phase
+        except AttributeError:
+            pass
+
     def _write_serial(self, docnames):
         """
         Loops through each variation, which causes each docname to be
@@ -83,9 +109,9 @@ class HTMLVariationBuilder(builder_base):
             for variation in self.config.variations:
                 self.current_variation = variation
 
-                self.app.phase = sphinx.util.build_phase.BuildPhase.RESOLVING
+                self._set_phase(sphinx.util.build_phase.BuildPhase.RESOLVING)
                 doctree = self.env.get_and_resolve_doctree(docname, self)
-                self.app.phase = sphinx.util.build_phase.BuildPhase.WRITING
+                self._set_phase(sphinx.util.build_phase.BuildPhase.WRITING)
                 self.write_doc_serialized(docname, doctree)
                 self.write_doc(docname, doctree)
 
