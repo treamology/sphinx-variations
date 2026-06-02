@@ -23,6 +23,6 @@ setuptools.setup(
         'Topic :: Software Development :: Documentation',
     ],
     install_requires=[
-       'sphinx'
+       'sphinx>=2.0'
     ],
 )
