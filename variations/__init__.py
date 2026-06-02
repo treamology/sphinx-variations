@@ -10,7 +10,7 @@ import sphinx.util.build_phase
 import docutils.nodes
 import docutils.io
 
-__version__ = '1.1.0'
+__version__ = '1.1.1'
 
 class VariationNode(docutils.nodes.Element):
     """
@@ -121,7 +121,7 @@ class HTMLVariationBuilder(builder_base):
 
             # the opensearch xml file
             if self.config.html_use_opensearch and self.search:
-                fn = path.join(self.outdir, '_static', 'opensearch.xml')
+                fn = os.path.join(self.outdir, '_static', 'opensearch.xml')
                 self.handle_page('opensearch', {}, 'opensearch.xml',
                                  outfilename=fn)
 
