@@ -173,6 +173,20 @@ def visit_variation_node(self, node):
 def depart_variation_node(self, node):
     pass
 
+def normalize_variations(app, config):
+    """
+    Allow ``variations`` to be given as a list of plain strings (as happens
+    when overridden on the command line, e.g. ``-D variations=python``, which
+    Sphinx parses into ``['python']``).  Each string is expanded into a
+    ``(name, name)`` tuple so the rest of the extension can rely on indexing
+    ``variation[0]``/``variation[1]``.
+    """
+    config.variations = [
+        var if isinstance(var, (tuple, list)) else (var, var)
+        for var in config.variations
+    ]
+
+
 def builder_inited(app):
     """
     This is the earliest event hook possible, hopefully adding stuff here
@@ -188,6 +202,7 @@ def setup(app):
     app.add_config_value('variations', [], 'env')
     app.add_builder(HTMLVariationBuilder, override=True)
 
+    app.connect('config-inited', normalize_variations)
     app.connect('builder-inited', builder_inited)
 
     return {
